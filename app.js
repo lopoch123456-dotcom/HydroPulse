@@ -3,11 +3,35 @@
   const HIST_KEY = "hydropulse.history.v2";
   const todayKey = () => new Date().toISOString().slice(0,10);
 
+  function log(...args){ try{ console.log("[HydroPulse]", ...args); }catch(_){} }
+
   let state = loadState();
   renderAll();
 
-  // Ripple bind
-  document.addEventListener("click", function(e){
+  // --- Robust event delegation for buttons ---
+  function handlePointer(e){
+    const t = e.target.closest("[data-add]");
+    if(!t) return;
+    e.preventDefault();
+    const amt = parseInt(t.getAttribute("data-add")||"0",10);
+    log("Add via delegate:", amt);
+    add(amt);
+  }
+  document.addEventListener("pointerup", handlePointer, {passive:false});
+
+  // Quick add
+  const quickBtn = byId("quickBtn");
+  if(quickBtn){
+    quickBtn.addEventListener("pointerup", (e)=>{
+      e.preventDefault();
+      const v = parseInt(byId("quickInput").value||"0",10);
+      log("Quick add:", v);
+      add(v);
+    }, {passive:false});
+  }
+
+  // Ripple (kept minimal)
+  document.addEventListener("pointerdown", function(e){
     const t = e.target.closest(".ripple");
     if(!t) return;
     const rect = t.getBoundingClientRect();
@@ -21,29 +45,37 @@
     setTimeout(()=>r.remove(), 500);
   }, {passive:true});
 
-  // Buttons
-  document.querySelectorAll("[data-add]").forEach(btn=>{
-    btn.addEventListener("click", ()=>add(parseInt(btn.dataset.add,10)));
+  // Other controls
+  onPointer(byId("undoBtn"), (e)=>{ e.preventDefault(); undo(); });
+  onPointer(byId("resetBtn"), (e)=>{ e.preventDefault(); resetToday(); });
+  const goalInput = byId("goalInput");
+  if(goalInput){
+    goalInput.addEventListener("input", e=>{
+      state.goal = clampInt(e.target.value, 0, 100000) || 0;
+      save(); renderAll();
+    });
+  }
+  const unitSelect = byId("unitSelect");
+  if(unitSelect){
+    unitSelect.addEventListener("change", e=>{
+      state.unit = e.target.value;
+      save(); renderAll();
+    });
+  }
+  onPointer(byId("notifyBtn"), async (e)=>{
+    e.preventDefault();
+    await toggleNotify();
   });
-  byId("quickBtn").addEventListener("click", ()=>{
-    const v = parseInt(byId("quickInput").value||"0",10);
-    add(v);
-  });
-  byId("undoBtn").addEventListener("click", undo);
-  byId("resetBtn").addEventListener("click", resetToday);
-  byId("goalInput").addEventListener("input", e=>{
-    state.goal = clampInt(e.target.value, 0, 100000) || 0;
-    save(); renderAll();
-  });
-  byId("unitSelect").addEventListener("change", e=>{
-    state.unit = e.target.value;
-    save(); renderAll();
-  });
-  byId("notifyBtn").addEventListener("click", toggleNotify);
+
   initMidnightTicker();
   initPWA();
   initParallax();
   drawTrend();
+
+  function onPointer(el, fn){
+    if(!el) return;
+    el.addEventListener("pointerup", fn, {passive:false});
+  }
 
   function loadState(){
     try{
@@ -201,6 +233,7 @@
 
   function renderNotifyLabel(){
     const btn = byId("notifyBtn");
+    if(!btn) return;
     btn.textContent = `Reminders: ${state.notifyOn ? "ON" : "OFF"}`;
     setupReminderInterval();
   }
@@ -225,8 +258,8 @@
     window.addEventListener("beforeinstallprompt", (e)=>{
       e.preventDefault(); deferredPrompt = e;
       const btn = document.getElementById("installBtn");
-      btn.style.display = "inline-flex";
-      btn.onclick = async ()=>{
+      if(btn) btn.style.display = "inline-flex";
+      if(btn) btn.onclick = async ()=>{
         if(!deferredPrompt) return;
         deferredPrompt.prompt();
         await deferredPrompt.userChoice;
