@@ -1,90 +1,42 @@
 (function(){
-  const STORAGE_KEY = "hydropulse.static.v2";
-  const HIST_KEY = "hydropulse.history.v2";
+  const STORAGE_KEY = "hydropulse.static.v1";
+  const HIST_KEY = "hydropulse.history.v1";
   const todayKey = () => new Date().toISOString().slice(0,10);
-
-  function log(...args){ try{ console.log("[HydroPulse]", ...args); }catch(_){} }
 
   let state = loadState();
   renderAll();
 
-  // --- Robust event delegation for buttons ---
-  function handlePointer(e){
-    const t = e.target.closest("[data-add]");
-    if(!t) return;
-    e.preventDefault();
-    const amt = parseInt(t.getAttribute("data-add")||"0",10);
-    log("Add via delegate:", amt);
-    add(amt);
-  }
-  document.addEventListener("pointerup", handlePointer, {passive:false});
-
-  // Quick add
-  const quickBtn = byId("quickBtn");
-  if(quickBtn){
-    quickBtn.addEventListener("pointerup", (e)=>{
-      e.preventDefault();
-      const v = parseInt(byId("quickInput").value||"0",10);
-      log("Quick add:", v);
-      add(v);
-    }, {passive:false});
-  }
-
-  // Ripple (kept minimal)
-  document.addEventListener("pointerdown", function(e){
-    const t = e.target.closest(".ripple");
-    if(!t) return;
-    const rect = t.getBoundingClientRect();
-    const r = document.createElement("span");
-    r.className = "r";
-    const size = Math.max(rect.width, rect.height);
-    r.style.width = r.style.height = size + "px";
-    r.style.left = (e.clientX - rect.left - size/2) + "px";
-    r.style.top  = (e.clientY - rect.top  - size/2) + "px";
-    t.appendChild(r);
-    setTimeout(()=>r.remove(), 500);
-  }, {passive:true});
-
-  // Other controls
-  onPointer(byId("undoBtn"), (e)=>{ e.preventDefault(); undo(); });
-  onPointer(byId("resetBtn"), (e)=>{ e.preventDefault(); resetToday(); });
-  const goalInput = byId("goalInput");
-  if(goalInput){
-    goalInput.addEventListener("input", e=>{
-      state.goal = clampInt(e.target.value, 0, 100000) || 0;
-      save(); renderAll();
-    });
-  }
-  const unitSelect = byId("unitSelect");
-  if(unitSelect){
-    unitSelect.addEventListener("change", e=>{
-      state.unit = e.target.value;
-      save(); renderAll();
-    });
-  }
-  onPointer(byId("notifyBtn"), async (e)=>{
-    e.preventDefault();
-    await toggleNotify();
+  // Event wiring
+  document.querySelectorAll("[data-add]").forEach(btn=>{
+    btn.addEventListener("click", ()=>add(parseInt(btn.dataset.add,10)));
   });
-
+  byId("quickBtn").addEventListener("click", ()=>{
+    const v = parseInt(byId("quickInput").value||"0",10);
+    add(v);
+  });
+  byId("undoBtn").addEventListener("click", undo);
+  byId("resetBtn").addEventListener("click", resetToday);
+  byId("goalInput").addEventListener("input", e=>{
+    state.goal = clampInt(e.target.value, 0, 100000) || 0;
+    save(); renderAll();
+  });
+  byId("unitSelect").addEventListener("change", e=>{
+    state.unit = e.target.value;
+    save(); renderAll();
+  });
+  byId("notifyBtn").addEventListener("click", toggleNotify);
   initMidnightTicker();
   initPWA();
-  initParallax();
   drawTrend();
-
-  function onPointer(el, fn){
-    if(!el) return;
-    el.addEventListener("pointerup", fn, {passive:false});
-  }
 
   function loadState(){
     try{
       const raw = localStorage.getItem(STORAGE_KEY);
-      if(!raw) return { date: todayKey(), goal: 1500, unit: "ml", log: [], notifyOn:false };
+      if(!raw) return { date: todayKey(), goal: 1500, unit: "ml", log: [] };
       const s = JSON.parse(raw);
-      if(s.date !== todayKey()) return { date: todayKey(), goal: s.goal||1500, unit: s.unit||"ml", log: [], notifyOn:s.notifyOn||false };
+      if(s.date !== todayKey()) return { date: todayKey(), goal: s.goal||1500, unit: s.unit||"ml", log: [] };
       return s;
-    }catch(_){ return { date: todayKey(), goal: 1500, unit: "ml", log: [], notifyOn:false } }
+    }catch(_){ return { date: todayKey(), goal: 1500, unit: "ml", log: [] } }
   }
 
   function save(){
@@ -118,7 +70,7 @@
     byId("pctText").textContent = progress() + "%";
     byId("barInner").style.width = progress() + "%";
     byId("unitSelect").value = state.unit;
-    const r = 102, c = 2*Math.PI*r, dash = c*progress()/100;
+    const r = 92, c = 2*Math.PI*r, dash = c*progress()/100;
     byId("ringProg").setAttribute("stroke-dasharray", dash + " " + (c-dash));
     renderLog();
     renderNotifyLabel();
@@ -180,13 +132,14 @@
     const w = cvs.width - padding*2;
     const h = cvs.height - padding*2;
     const max = Math.max(...hist.map(d=>d.total), 1);
-    ctx.setTransform(1,0,0,1,0,0);
     ctx.translate(padding, padding);
     ctx.strokeStyle = "rgba(255,255,255,.08)";
+    // grid
     for(let i=0;i<=4;i++){ 
       const y = h*i/4; 
       ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); 
     }
+    // line
     ctx.strokeStyle = "#22d3ee"; ctx.lineWidth = 2;
     ctx.beginPath();
     hist.forEach((d,i)=>{
@@ -195,24 +148,27 @@
       i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
     });
     ctx.stroke();
+    // dots
     ctx.fillStyle = "#22d3ee";
     hist.forEach((d,i)=>{
       const x = w * i / Math.max(1,hist.length-1);
       const y = h - (d.total/max)*h;
       ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fill();
     });
+    // labels (dates)
     ctx.fillStyle = "#9a9a9a"; ctx.font = "12px system-ui, sans-serif";
     hist.forEach((d,i)=>{
       const x = w * i / Math.max(1,hist.length-1);
       const label = d.date.slice(5);
       ctx.fillText(label, x-14, h+16);
     });
+    ctx.setTransform(1,0,0,1,0,0); // reset transform
   }
 
   function initMidnightTicker(){
     setInterval(()=>{
       if(todayKey() !== state.date){
-        state = { date: todayKey(), goal: state.goal, unit: state.unit, log: [], notifyOn: state.notifyOn };
+        state = { date: todayKey(), goal: state.goal, unit: state.unit, log: [] };
         save(); renderAll();
       }
     }, 60*1000);
@@ -233,7 +189,6 @@
 
   function renderNotifyLabel(){
     const btn = byId("notifyBtn");
-    if(!btn) return;
     btn.textContent = `Reminders: ${state.notifyOn ? "ON" : "OFF"}`;
     setupReminderInterval();
   }
@@ -244,7 +199,7 @@
     if(state.notifyOn && "Notification" in window && Notification.permission==="granted"){
       reminderId = setInterval(()=>{
         new Notification("HydroPulse Reminder", { body: "Time to sip some water 💧" });
-      }, 90*60*1000);
+      }, 90*60*1000); // every 90 minutes
     }
   }
 
@@ -258,8 +213,8 @@
     window.addEventListener("beforeinstallprompt", (e)=>{
       e.preventDefault(); deferredPrompt = e;
       const btn = document.getElementById("installBtn");
-      if(btn) btn.style.display = "inline-flex";
-      if(btn) btn.onclick = async ()=>{
+      btn.style.display = "inline-flex";
+      btn.onclick = async ()=>{
         if(!deferredPrompt) return;
         deferredPrompt.prompt();
         await deferredPrompt.userChoice;
@@ -267,25 +222,5 @@
         btn.style.display = "none";
       };
     });
-  }
-
-  function initParallax(){
-    const els = Array.from(document.querySelectorAll("[data-parallax]"));
-    if(!els.length) return;
-    let ticking = false;
-    function onScroll(){
-      if(ticking) return;
-      ticking = true;
-      requestAnimationFrame(()=>{
-        const y = window.scrollY || 0;
-        els.forEach(el=>{
-          const speed = parseFloat(el.getAttribute("data-speed")||"0.2");
-          el.style.transform = `translate3d(0, ${Math.round(y*speed)}px, 0)`;
-        });
-        ticking = false;
-      });
-    }
-    window.addEventListener("scroll", onScroll, {passive:true});
-    onScroll();
   }
 })();
