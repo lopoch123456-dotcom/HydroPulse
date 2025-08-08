@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0a0a">
+  <link rel="manifest" href="manifest.json">
+  <title>HydroPulse — Bauhaus × Futurism</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="shell">
+    <div class="brand">
+      <div class="logo">H</div>
+      <div class="titles">
+        <h1>HydroPulse</h1>
+        <p>Bauhaus × Futurism Hydration</p>
+      </div>
+    </div>
+    <button id="installBtn" class="ghost" style="display:none">Install</button>
+  </header>
+
+  <main class="container">
+    <!-- Landing Hero with parallax geometry -->
+    <section class="hero card" id="hero">
+      <div class="pad hero-content">
+        <h2 class="hero-title">Hydration in Motion</h2>
+        <p class="hero-sub">Bauhaus geometry meets Futurist speed — track your water with style.</p>
+        <div class="row">
+          <a href="#app" class="btn ripple">Open App</a>
+        </div>
+      </div>
+      <div class="hero-geo">
+        <div class="geo geo-a" data-parallax data-speed="0.15"></div>
+        <div class="geo geo-b" data-parallax data-speed="0.3"></div>
+        <div class="geo geo-c" data-parallax data-speed="-0.2"></div>
+      </div>
+    </section>
+
+    <section class="card grid-2" id="app">
+      <div class="pad">
+        <h2>Today · <span id="todayDate"></span></h2>
+        <div class="ring-wrap">
+          <svg id="ring" width="240" height="240" viewBox="0 0 240 240" class="ring-svg">
+            <defs>
+              <!-- Gradient for the progress stroke -->
+              <linearGradient id="gradStroke" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#22d3ee"/>
+                <stop offset="100%" stop-color="#7dd3fc"/>
+              </linearGradient>
+              <!-- Sweep gradient overlay using conic-like sweep via mask -->
+              <linearGradient id="shine" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="rgba(255,255,255,0)"/>
+                <stop offset="0.5" stop-color="rgba(255,255,255,0.7)"/>
+                <stop offset="1" stop-color="rgba(255,255,255,0)"/>
+              </linearGradient>
+              <mask id="ringMask">
+                <rect x="0" y="0" width="240" height="240" fill="black"/>
+                <circle cx="120" cy="120" r="102" stroke="white" stroke-width="20" fill="none" stroke-linecap="round"/>
+              </mask>
+            </defs>
+            <!-- Base track -->
+            <circle cx="120" cy="120" r="102" stroke="rgba(255,255,255,0.12)" stroke-width="20" fill="none"/>
+            <!-- Progress arc -->
+            <g class="ring-arc" style="transform-origin:120px 120px">
+              <circle id="ringProg" cx="120" cy="120" r="102" stroke="url(#gradStroke)" stroke-width="20" stroke-linecap="round" fill="none" transform="rotate(-90 120 120)" stroke-dasharray="0 9999"/>
+            </g>
+            <!-- Animated sweep shine clipped to ring -->
+            <g mask="url(#ringMask)" class="ring-sweep" style="transform-origin:120px 120px">
+              <rect x="-120" y="-120" width="480" height="480" fill="url(#shine)" opacity="0.7"/>
+            </g>
+          </svg>
+          <div class="ring-center">
+            <div class="total" id="totalText">0</div>
+            <div class="sub">/ <span id="goalText">1500</span>ml</div>
+          </div>
+        </div>
+
+        <div class="grid-3 mt">
+          <button class="btn ripple" data-add="150">+150ml</button>
+          <button class="btn ripple" data-add="200">+200ml</button>
+          <button class="btn ripple" data-add="250">+250ml</button>
+          <button class="btn ripple" data-add="300">+300ml</button>
+          <button class="btn ripple" data-add="350">+350ml</button>
+          <button class="btn ripple" data-add="500">+500ml</button>
+        </div>
+
+        <div class="row mt">
+          <input id="quickInput" type="number" value="250">
+          <button id="quickBtn" class="btn ripple">Quick add</button>
+          <button id="undoBtn" class="ghost">Undo</button>
+          <button id="resetBtn" class="ghost">Reset</button>
+        </div>
+
+        <div class="grid-2 mt">
+          <label class="stack">
+            <span class="label">Daily Goal (ml)</span>
+            <input id="goalInput" type="number" value="1500">
+          </label>
+          <label class="stack">
+            <span class="label">Unit</span>
+            <select id="unitSelect">
+              <option value="ml" selected>ml</option>
+              <option value="oz">oz</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="row mid mt">
+          <div class="muted">Progress</div>
+          <div id="pctText" class="bold">0%</div>
+        </div>
+        <div class="bar"><div id="barInner" class="bar-inner" style="width:0%"></div></div>
+
+        <div class="row mt">
+          <button id="notifyBtn" class="btn outline ripple">Reminders: OFF</button>
+        </div>
+      </div>
+
+      <div class="pad">
+        <h2>7-Day Trend</h2>
+        <canvas id="trend" width="600" height="260" class="chart"></canvas>
+        <p class="muted small">Tip: totals auto-save at midnight.</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="pad">
+        <h2>Log</h2>
+        <ul id="logList" class="log"></ul>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

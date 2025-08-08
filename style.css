@@ -1,0 +1,53 @@
+*{box-sizing:border-box}html,body{margin:0;padding:0;background:#0a0a0a;color:#eee;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+.shell{max-width:1024px;margin:0 auto;padding:16px 16px 0;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{height:40px;width:40px;border-radius:50%;background:#22d3ee;color:#0a0a0a;font-weight:900;display:grid;place-items:center}
+.titles h1{margin:0;font-size:22px;font-weight:900;letter-spacing:-0.01em}
+.titles p{margin:0;font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:.2em}
+.container{max-width:1024px;margin:0 auto;padding:16px;position:relative}
+.card{background:rgba(20,20,20,.85);border:1px solid #262626;border-radius:20px;backdrop-filter:blur(6px);margin-bottom:16px;overflow:hidden;position:relative}
+.pad{padding:16px 16px 24px}
+.grid-2{display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:900px){.grid-2{grid-template-columns:1fr 1fr}}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.mid{justify-content:space-between}
+.btn{background:#22d3ee;color:#0a0a0a;border:none;border-radius:999px;padding:10px 14px;font-weight:700;position:relative;overflow:hidden;transform:translateZ(0);transition:transform .06s ease}
+.btn:active{transform:scale(.98)}
+.btn.outline{background:transparent;border:1px solid #3a3a3a;color:#eee}
+.ghost{background:transparent;border:1px solid #2a2a2a;color:#eee;border-radius:999px;padding:8px 12px;transition:transform .06s ease}
+.ghost:active{transform:scale(.98)}
+input,select{height:40px;border-radius:10px;border:1px solid #2a2a2a;background:#121212;color:#eee;padding:0 10px;width:100%}
+.label{font-size:11px;color:#9a9a9a;text-transform:uppercase;letter-spacing:.2em}
+.stack{display:flex;flex-direction:column;gap:6px}
+.muted{color:#9a9a9a}
+.small{font-size:12px}
+.bold{font-weight:800}
+.mt{margin-top:12px}
+.bar{height:12px;border-radius:8px;background:#151515;border:1px solid #2a2a2a;overflow:hidden}
+.bar-inner{height:100%;background:#22d3ee}
+.ring-wrap{position:relative;display:grid;place-items:center;margin:10px 0}
+.ring-center{position:absolute;display:grid;place-items-center;inset:0;text-align:center}
+.total{font-size:38px;font-weight:900}
+.sub{font-size:12px;color:#aaa;text-transform:uppercase;letter-spacing:.2em}
+.chart{width:100%;height:auto;border:1px dashed #2a2a2a;border-radius:12px;background:linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px) 0 0/80px 100%, linear-gradient(0deg, rgba(255,255,255,.04) 1px, transparent 1px) 0 0/100% 80px}
+.log{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;list-style:none;padding:0;margin:0}
+.log li{border:1px solid #2a2a2a;background:#111;border-radius:12px;padding:10px}
+/* Ripple effect */
+.ripple span.r{position:absolute;border-radius:50%;transform:scale(0);animation:ripple .45s ease-out;pointer-events:none;background:rgba(255,255,255,.5)}
+@keyframes ripple{to{transform:scale(12);opacity:0}}
+/* Ring sweep animation */
+.ring-svg .ring-sweep{animation:spin 3s linear infinite}
+.ring-svg .ring-arc{animation:slow-spin 12s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes slow-spin{to{transform:rotate(360deg)}}
+/* Hero parallax geometry */
+.hero{overflow:hidden}
+.hero-content{position:relative;z-index:1}
+.hero-geo{position:absolute;inset:0;pointer-events:none}
+.geo{position:absolute;opacity:.6;filter:drop-shadow(0 10px 30px rgba(34,211,238,.2))}
+.geo-a{width:220px;height:220px;border-radius:999px;border:10px solid #22d3ee;right:-60px;top:-60px}
+.geo-b{width:320px;height:60px;border-radius:16px;background:linear-gradient(90deg,#22d3ee,#7dd3fc);left:-80px;bottom:40px;transform:rotate(-8deg)}
+.geo-c{width:120px;height:120px;border-radius:24px;border:8px solid #7dd3fc;left:40%;top:-40px;transform:rotate(30deg)}
+.hero-title{font-size:32px;font-weight:900;margin:0 0 6px 0}
+.hero-sub{margin:0 0 14px 0;color:#cbd5e1}
